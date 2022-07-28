@@ -21,6 +21,9 @@ if importlib.util.find_spec("pyspark") is not None:
     import pyspark
 if importlib.util.find_spec("polars") is not None:
     import polars as pl
+if importlib.util.find_spec("datasets") is not None:
+    import datasets
+
 from dataclasses_json import config, dataclass_json
 from marshmallow import fields
 from typing_extensions import Annotated, TypeAlias, get_args, get_origin
@@ -668,6 +671,8 @@ class StructuredDatasetTransformerEngine(TypeTransformer[StructuredDataset]):
         elif importlib.util.find_spec("polars") is not None and isinstance(df, pl.DataFrame):
             describe_df = df.describe()
             return pd.DataFrame(describe_df.transpose(), columns=describe_df.columns).to_html(index=False)
+        elif importlib.util.find_spec("datasets") is not None and isinstance(df, datasets.arrow_dataset.Dataset):
+            return str(df)
         else:
             raise NotImplementedError("Conversion to html string should be implemented")
 
