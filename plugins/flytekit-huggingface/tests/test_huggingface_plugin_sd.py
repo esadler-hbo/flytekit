@@ -7,7 +7,8 @@ try:
 except ImportError:
     from typing_extensions import Annotated
 
-from flytekit import kwtypes, task, workflow
+from flytekit import StructuredDataset, StructuredDatasetTransformerEngine, kwtypes, task, workflow
+from flytekit.core.context_manager import ExecutionParameters, FlyteContextManager
 from flytekit.types.structured.structured_dataset import PARQUET, StructuredDataset
 
 subset_schema = Annotated[StructuredDataset, kwtypes(col2=str), PARQUET]
@@ -27,6 +28,8 @@ def test_huggingface_dataset_workflow_subset():
         assert dataset[0]["col2"] == "a"
         assert dataset[1]["col2"] == "b"
         assert dataset[2]["col2"] == "c"
+
+        assert "col1" not in dataset[0]
 
         return StructuredDataset(dataframe=dataset)
 
@@ -63,3 +66,17 @@ def test_huggingface_dataset__workflow_full():
 
     result = wf()
     assert result is not None
+
+
+def test_to_html():
+    df = pd.DataFrame({"col1": [1, 3, 2], "col2": list("abc")})
+    ds = datasets.Dataset.from_pandas(df)
+
+    sd = StructuredDataset(dataframe=ds)
+    tf = StructuredDatasetTransformerEngine()
+    output = tf.to_html(FlyteContextManager.current_context(), sd, datasets.Dataset)
+
+    import pdb
+
+    pdb.set_trace()
+    assert str(ds) == output
